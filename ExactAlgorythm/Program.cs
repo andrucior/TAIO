@@ -23,32 +23,34 @@ try
 {
     // Read graphs from file
     var (g1, g2) = GraphHelpers.FromFile(inputPath, out int copies);
-
+    
     Console.WriteLine("=== Input Data ===");
     Console.WriteLine($"Pattern Graph G1 (vertices: {g1.VertexCount}, edges: {g1.EdgeCount})");
+    Console.WriteLine($"  Graph type: {(g1.IsDirected ? "Directed" : "Undirected")}");
     Console.WriteLine($"Target Graph G2 (vertices: {g2.VertexCount}, edges: {g2.EdgeCount})");
+    Console.WriteLine($"  Graph type: {(g2.IsDirected ? "Directed" : "Undirected")}");
     Console.WriteLine($"Required copies: {copies}");
     Console.WriteLine();
 
     // Create VF2 solver
     var solver = new VF2Solver(g1, g2);
-
+    
     // Measure execution time
     var stopwatch = Stopwatch.StartNew();
-
+    
     // Find k copies of G1 in G2 with minimal extensions
     var result = solver.FindKCopies(copies);
-
+    
     stopwatch.Stop();
-
+    
     // Output results
     Console.WriteLine("=== Results ===");
     Console.WriteLine($"Total cost of extension: {result.TotalCost}");
     Console.WriteLine($"Added vertices: {result.AddedVertices}");
-    Console.WriteLine($"Added edges: {result.AddedEdges}");
+    Console.WriteLine($"Added edges (cost): {result.AddedEdges}");
     Console.WriteLine($"Execution time: {stopwatch.ElapsedMilliseconds} ms");
     Console.WriteLine();
-
+    
     Console.WriteLine($"Found {result.Mappings.Count} copies:");
     for (int i = 0; i < result.Mappings.Count; i++)
     {
@@ -59,13 +61,15 @@ try
             string marker = result.Mappings[i].AddedVertices.Contains(v2) ? " (new)" : "";
             Console.WriteLine($"    {v1} -> {v2}{marker}");
         }
-
+        
         if (result.Mappings[i].AddedEdges.Count > 0)
         {
             Console.WriteLine("  Added edges:");
             foreach (var edge in result.Mappings[i].AddedEdges)
             {
-                Console.WriteLine($"    {edge}");
+                string direction = edge.IsDirected ? "->" : "<->";
+                int cost = edge.IsDirected ? 1 : 2;
+                Console.WriteLine($"    {edge.From} {direction} {edge.To} (cost: {cost})");
             }
         }
     }
@@ -73,7 +77,10 @@ try
 catch (Exception ex)
 {
     Console.WriteLine($"Error: {ex.Message}");
+    Console.WriteLine($"Stack trace: {ex.StackTrace}");
 }
+
+
 
 // Represents a single mapping from G1 to G2
 public class Mapping
@@ -82,13 +89,24 @@ public class Mapping
     public HashSet<int> AddedVertices { get; }
     public List<Edge<int>> AddedEdges { get; }
     public int Cost { get; }
-
+    
     public Mapping(Dictionary<int, int> vertexMap, HashSet<int> addedVertices, List<Edge<int>> addedEdges)
     {
         VertexMap = vertexMap;
         AddedVertices = addedVertices;
         AddedEdges = addedEdges;
-        Cost = addedVertices.Count + addedEdges.Count;
+        
+        // Calculate cost:
+        // - Each vertex costs 1
+        // - Each directed edge (IsDirected=true) costs 1
+        // - Each undirected edge (IsDirected=false) costs 2
+        int edgeCost = 0;
+        foreach (var edge in addedEdges)
+        {
+            edgeCost += edge.IsDirected ? 1 : 2;
+        }
+        
+        Cost = addedVertices.Count + edgeCost;
     }
 }
 
@@ -99,12 +117,32 @@ public class SearchResult
     public int TotalCost { get; }
     public int AddedVertices { get; }
     public int AddedEdges { get; }
-
+    
     public SearchResult(List<Mapping> mappings, int totalCost)
     {
         Mappings = mappings;
         TotalCost = totalCost;
         AddedVertices = mappings.SelectMany(m => m.AddedVertices).Distinct().Count();
-        AddedEdges = mappings.SelectMany(m => m.AddedEdges).Distinct().Count();
+        
+        // Count total edge cost (considering directed vs undirected)
+        var seenEdges = new HashSet<string>();
+        int totalEdgeCost = 0;
+        
+        foreach (var mapping in mappings)
+        {
+            foreach (var edge in mapping.AddedEdges)
+            {
+                string edgeKey = edge.IsDirected 
+                    ? $"{edge.From}->{edge.To}"
+                    : string.Join("-", new[] { edge.From, edge.To }.OrderBy(v => v));
+                
+                if (seenEdges.Add(edgeKey))
+                {
+                    totalEdgeCost += edge.IsDirected ? 1 : 2;
+                }
+            }
+        }
+        
+        AddedEdges = totalEdgeCost;
     }
 }

@@ -204,13 +204,13 @@ namespace ExactAlgorythm
         {
             var mappings = new List<Mapping>();
             int currentVertex = _nextVertexId;
-
+            
             for (int i = 0; i < k; i++)
             {
                 var vertexMap = new Dictionary<int, int>();
                 var addedVertices = new HashSet<int>();
                 var addedEdges = new List<Edge<int>>();
-
+                
                 // Map each vertex to a new vertex
                 foreach (var v in _g1.Vertices)
                 {
@@ -218,17 +218,22 @@ namespace ExactAlgorythm
                     addedVertices.Add(currentVertex);
                     currentVertex++;
                 }
-
-                // Add all edges
+                
+                // Add all edges preserving graph type
                 foreach (var edge in _g1.GetAllEdges())
                 {
-                    var newEdge = new Edge<int>(vertexMap[edge.From], vertexMap[edge.To]);
+                    var newEdge = new Edge<int>(
+                        vertexMap[edge.From], 
+                        vertexMap[edge.To],
+                        1.0,
+                        _g1.IsDirected  // Preserve directed/undirected nature
+                    );
                     addedEdges.Add(newEdge);
                 }
-
+                
                 mappings.Add(new Mapping(vertexMap, addedVertices, addedEdges));
             }
-
+            
             return mappings;
         }
     }

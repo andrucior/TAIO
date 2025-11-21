@@ -17,15 +17,8 @@ namespace GraphLibrary.Helpers
             if (!int.TryParse(line, out int vertexCount))
                 throw new InvalidDataException("Invalid number of vertices.");
 
-            Graph<int> graph = new();
-
-            // Initialize vertices
-            for (int i = 0; i < vertexCount; i++)
-            {
-                graph.AddVertex(i);
-            }
-
-            // Read adjacency matrix
+            // Read adjacency matrix first to check if directed
+            var matrix = new int[vertexCount, vertexCount];
             for (int i = 0; i < vertexCount; i++)
             {
                 line = reader.ReadLine() ??
@@ -38,12 +31,48 @@ namespace GraphLibrary.Helpers
 
                 for (int j = 0; j < vertexCount; j++)
                 {
-                    if (int.TryParse(parts[j], out int edgeCount) && edgeCount > 0)
+                    if (!int.TryParse(parts[j], out matrix[i, j]))
+                        throw new InvalidDataException("Invalid edge count in adjacency matrix.");
+                }
+            }
+
+            // Check if matrix is symmetric (undirected) or asymmetric (directed)
+            bool isDirected = false;
+            for (int i = 0; i < vertexCount && !isDirected; i++)
+            {
+                for (int j = i + 1; j < vertexCount; j++)
+                {
+                    if (matrix[i, j] != matrix[j, i])
                     {
-                        // Add edge edgeCount times (for multigraphs)
-                        for (int k = 0; k < edgeCount; k++)
+                        isDirected = true;
+                        break;
+                    }
+                }
+            }
+
+            Graph<int> graph = new(isDirected);
+
+            // Initialize vertices
+            for (int i = 0; i < vertexCount; i++)
+            {
+                graph.AddVertex(i);
+            }
+
+            // Add edges based on matrix
+            for (int i = 0; i < vertexCount; i++)
+            {
+                for (int j = 0; j < vertexCount; j++)
+                {
+                    if (matrix[i, j] > 0)
+                    {
+                        // For directed graphs, add edge from i to j
+                        // For undirected graphs, add only once (i <= j to avoid duplicates)
+                        if (isDirected || i <= j)
                         {
-                            graph.AddEdge(i, j);
+                            for (int k = 0; k < matrix[i, j]; k++)
+                            {
+                                graph.AddEdge(i, j);
+                            }
                         }
                     }
                 }
