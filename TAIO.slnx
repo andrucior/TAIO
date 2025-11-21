@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="ApproxAlgorythm/ApproxAlgorythm.csproj" Id="d4f175da-e55f-41c7-9898-e86429a84f3c" />
+  <Project Path="ExactAlgorythm/ExactAlgorythm.csproj" Id="b97e4a63-e046-4a9d-98e6-874a6cafbc44" />
+  <Project Path="GraphLibrary/GraphLibrary.csproj" />
+</Solution>

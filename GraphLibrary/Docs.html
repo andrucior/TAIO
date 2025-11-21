@@ -1,0 +1,705 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Library Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+            header h1 {
+                font-size: 2.5rem;
+                margin-bottom: 0.5rem;
+            }
+
+            header p {
+                font-size: 1.1rem;
+                opacity: 0.9;
+            }
+
+        nav {
+            background: #2d3748;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+            nav ul {
+                list-style: none;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1.5rem;
+            }
+
+            nav a {
+                color: white;
+                text-decoration: none;
+                transition: color 0.3s;
+            }
+
+                nav a:hover {
+                    color: #667eea;
+                }
+
+        main {
+            padding: 2rem;
+        }
+
+        section {
+            margin-bottom: 3rem;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1.5rem;
+            margin: 1.5rem 0 1rem;
+        }
+
+        h4 {
+            color: #2d3748;
+            font-size: 1.2rem;
+            margin: 1rem 0 0.5rem;
+        }
+
+        .method-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .method-signature {
+            background: #2d3748;
+            color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 0.5rem 0;
+        }
+
+        .example {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .code-block {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .keyword {
+            color: #c792ea;
+        }
+
+        .type {
+            color: #82aaff;
+        }
+
+        .string {
+            color: #c3e88d;
+        }
+
+        .comment {
+            color: #546e7a;
+            font-style: italic;
+        }
+
+        .number {
+            color: #f78c6c;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .warning {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        footer {
+            background: #2d3748;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            nav ul {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            header h1 {
+                font-size: 1.8rem;
+            }
+        }
+
+        .modern-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+            .modern-list li {
+                padding: 10px 0;
+                border-bottom: 1px solid #ddd;
+            }
+
+                .modern-list li:last-child {
+                    border-bottom: none;
+                }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>GraphLibrary.Model</h1>
+            <p>A comprehensive C# graph data structure library with algorithms</p>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#getting-started">Getting Started</a></li>
+                <li><a href="#edge-class">Edge Class</a></li>
+                <li><a href="#graph-class">Graph Class</a></li>
+                <li><a href="#algorithms">Algorithms</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section id="overview">
+                <h2>Overview</h2>
+                <p>GraphLibrary.Model provides a generic, feature-rich implementation of graph data structures in C#. It supports both directed and undirected graphs, weighted edges, and includes common graph algorithms.</p>
+
+                <h3>Features</h3>
+                <ul class="modern-list">
+                    <li>Generic implementation - works with any non-nullable type</li>
+                    <li>Support for both directed and undirected graphs</li>
+                    <li>Weighted edges</li>
+                    <li>Comprehensive graph algorithms (BFS, DFS, Dijkstra, etc.)</li>
+                    <li>Cycle detection</li>
+                    <li>Topological sorting</li>
+                    <li>Connected components analysis</li>
+                    <li>Path finding utilities</li>
+                </ul>
+            </section>
+
+            <section id="getting-started">
+                <h2>Getting Started</h2>
+
+                <h3>Creating a Graph</h3>
+                <div class="example">
+                    <div class="code-block">
+                        <span class="comment">// Create an undirected graph</span>
+                        <br />
+                        <span class="keyword">var</span> graph = <span class="keyword">new</span> <span class="type">Graph</span>&lt;<span class="type">string</span>&gt;();
+                        <br />
+                        <span class="comment">// Create a directed graph</span>
+                        <br />
+                        <span class="keyword">var</span> directedGraph = <span class="keyword">new</span> <span class="type">Graph</span>&lt;<span class="type">int</span>&gt;(directed: <span class="keyword">true</span>);
+                        <br />
+                        <span class="comment">// Create a copy of an existing graph</span>
+                        <br />
+                        <span class="keyword">var</span> graphCopy = <span class="keyword">new</span> <span class="type">Graph</span>&lt;<span class="type">string</span>&gt;(graph);
+                    </div>
+                </div>
+
+                <h3>Adding Vertices and Edges</h3>
+                <div class="example">
+                    <div class="code-block">
+                        <span class="keyword">var</span> graph = <span class="keyword">new</span> <span class="type">Graph</span>&lt;<span class="type">string</span>&gt;();
+                        <br />
+                        <span class="comment">// Add vertices</span>
+                        <br />
+                        graph.AddVertex(<span class="string">"A"</span>);
+                        <br />
+                        graph.AddVertex(<span class="string">"B"</span>);
+                        <br />
+                        graph.AddVertex(<span class="string">"C"</span>);
+                        <br />
+                        <span class="comment">// Add edges (automatically adds vertices if they don't exist)</span>
+                        <br />
+                        graph.AddEdge(<span class="string">"A"</span>, <span class="string">"B"</span>);
+                        <br />
+                        graph.AddEdge(<span class="string">"B"</span>, <span class="string">"C"</span>, weight: <span class="number">2.5</span>);
+                        <br />
+                        graph.AddEdge(<span class="string">"A"</span>, <span class="string">"C"</span>, weight: <span class="number">1.0</span>);
+                    </div>
+                </div>
+            </section>
+
+            <section id="edge-class">
+                <h2>Edge&lt;T&gt; Class</h2>
+                <p>Represents an edge in the graph with source, destination, weight, and direction information.</p>
+
+                <div class="method-card">
+                    <h4>Constructor</h4>
+                    <div class="method-signature">
+                        Edge(T from, T to, double weight = 1.0, bool isDirected = false)
+                    </div>
+                    <p><strong>Parameters:</strong></p>
+                    <ul class="modern-list">
+                        <li><code>from</code> - Source vertex</li>
+                        <li><code>to</code> - Destination vertex</li>
+                        <li><code>weight</code> - Edge weight (default: 1.0)</li>
+                        <li><code>isDirected</code> - Whether the edge is directed (default: false)</li>
+                    </ul>
+                </div>
+
+                <h3>Properties</h3>
+                <table>
+                    <tr>
+                        <th>Property</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td>From</td>
+                        <td>T</td>
+                        <td>Source vertex (immutable)</td>
+                    </tr>
+                    <tr>
+                        <td>To</td>
+                        <td>T</td>
+                        <td>Destination vertex (immutable)</td>
+                    </tr>
+                    <tr>
+                        <td>Weight</td>
+                        <td>double</td>
+                        <td>Edge weight (immutable)</td>
+                    </tr>
+                    <tr>
+                        <td>IsDirected</td>
+                        <td>bool</td>
+                        <td>Direction indicator (immutable)</td>
+                    </tr>
+                </table>
+
+                <div class="example">
+                    <h4>Example Usage</h4>
+                    <div class="code-block">
+                        <span class="keyword">var</span> edge1 = <span class="keyword">new</span> <span class="type">Edge</span>&lt;<span class="type">string</span>&gt;(<span class="string">"A"</span>, <span class="string">"B"</span>);
+                        <br />
+                        <span class="keyword">var</span> edge2 = <span class="keyword">new</span> <span class="type">Edge</span>&lt;<span class="type">int</span>&gt;(<span class="number">1</span>, <span class="number">2</span>, weight: <span class="number">5.0</span>, isDirected: <span class="keyword">true</span>);
+                        <br />
+                        Console.WriteLine(edge1); <span class="comment">// Output: A &lt;-&gt; B</span>
+                        <br />
+                        Console.WriteLine(edge2); <span class="comment">// Output: 1 -&gt; 2 (weight: 5)</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="graph-class">
+                <h2>Graph&lt;T&gt; Class</h2>
+
+                <h3>Properties</h3>
+                <table>
+                    <tr>
+                        <th>Property</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td>IsDirected</td>
+                        <td>bool</td>
+                        <td>Indicates if the graph is directed</td>
+                    </tr>
+                    <tr>
+                        <td>VertexCount</td>
+                        <td>int</td>
+                        <td>Number of vertices in the graph</td>
+                    </tr>
+                    <tr>
+                        <td>EdgeCount</td>
+                        <td>int</td>
+                        <td>Number of edges in the graph</td>
+                    </tr>
+                    <tr>
+                        <td>Vertices</td>
+                        <td>IEnumerable&lt;T&gt;</td>
+                        <td>Collection of all vertices</td>
+                    </tr>
+                </table>
+
+                <h3>Vertex Operations</h3>
+
+                <div class="method-card">
+                    <h4>AddVertex</h4>
+                    <div class="method-signature">void AddVertex(T v)</div>
+                    <p>Adds a vertex to the graph. Does nothing if vertex already exists.</p>
+                    <div class="code-block">
+                        graph.AddVertex(<span class="string">"A"</span>);
+                    </div>
+                </div>
+
+                <div class="method-card">
+                    <h4>RemoveVertex</h4>
+                    <div class="method-signature">bool RemoveVertex(T v)</div>
+                    <p>Removes a vertex and all edges connected to it. Returns true if successful.</p>
+                    <div class="code-block">
+                        <span class="keyword">bool</span> removed = graph.RemoveVertex(<span class="string">"A"</span>);
+                    </div>
+                </div>
+
+                <div class="method-card">
+                    <h4>ContainsVertex</h4>
+                    <div class="method-signature">bool ContainsVertex(T v)</div>
+                    <p>Checks if a vertex exists in the graph.</p>
+                    <div class="code-block">
+                        <span class="keyword">if</span> (graph.ContainsVertex(<span class="string">"A"</span>))
+                        {
+                        Console.WriteLine(<span class="string">"Vertex A exists"</span>);
+                        }
+                    </div>
+                </div>
+
+                <h3>Edge Operations</h3>
+
+                <div class="method-card">
+                    <h4>AddEdge</h4>
+                    <div class="method-signature">void AddEdge(T u, T v, double weight = 1.0)</div>
+                    <p>Adds an edge between two vertices. Creates vertices if they don't exist. Prevents duplicate edges.</p>
+                    <div class="code-block">
+                        graph.AddEdge(<span class="string">"A"</span>, <span class="string">"B"</span>);
+                        graph.AddEdge(<span class="string">"B"</span>, <span class="string">"C"</span>, weight: <span class="number">3.5</span>);
+                    </div>
+                </div>
+
+                <div class="method-card">
+                    <h4>RemoveEdge</h4>
+                    <div class="method-signature">bool RemoveEdge(T u, T v)</div>
+                    <p>Removes an edge between two vertices. Returns true if successful.</p>
+                    <div class="code-block">
+                        graph.RemoveEdge(<span class="string">"A"</span>, <span class="string">"B"</span>);
+                    </div>
+                </div>
+                <div class="method-card">
+                    <h4>RemoveEdge</h4>
+                    <div class="method-signature">bool RemoveEdge(Edge e)</div>
+                    <p>Removes an edge from e.From to e.To. Returns true if successful.</p>
+                </div>
+
+                <div class="method-card">
+                    <h4>HasEdge</h4>
+                    <div class="method-signature">bool HasEdge(T u, T v)</div>
+                    <p>Checks if an edge exists between two vertices.</p>
+                    <div class="code-block">
+                        <span class="keyword">if</span> (graph.HasEdge(<span class="string">"A"</span>, <span class="string">"B"</span>))
+                        {
+                        Console.WriteLine(<span class="string">"Edge exists"</span>);
+                        }
+                    </div>
+                </div>
+
+                <div class="method-card">
+                    <h4>GetEdgeWeight</h4>
+                    <div class="method-signature">double? GetEdgeWeight(T u, T v)</div>
+                    <p>Returns the weight of an edge, or null if the edge doesn't exist.</p>
+                    <div class="code-block">
+                        <span class="keyword">var</span> weight = graph.GetEdgeWeight(<span class="string">"A"</span>, <span class="string">"B"</span>);
+                        <span class="keyword">if</span> (weight.HasValue)
+                        {
+                        Console.WriteLine(<span class="string">$"Weight: {weight.Value}"</span>);
+                        }
+                    </div>
+                </div>
+
+                <h3>Graph Analysis</h3>
+
+                <div class="method-card">
+                    <h4>Degree / InDegree / OutDegree</h4>
+                    <div class="method-signature">
+                        int Degree(T v)
+                        int InDegree(T v)
+                        int OutDegree(T v)
+                    </div>
+                    <p>Returns the degree of a vertex. For directed graphs, InDegree counts incoming edges and OutDegree counts outgoing edges.</p>
+                    <div class="code-block">
+                        <span class="keyword">int</span> degree = graph.Degree(<span class="string">"A"</span>);
+                        <span class="keyword">int</span> inDegree = graph.InDegree(<span class="string">"A"</span>);
+                        <span class="keyword">int</span> outDegree = graph.OutDegree(<span class="string">"A"</span>);
+                    </div>
+                </div>
+
+                <div class="method-card">
+                    <h4>GetNeighbors</h4>
+                    <div class="method-signature">IEnumerable&lt;(T neighbor, double weight)&gt; GetNeighbors(T v)</div>
+                    <p>Returns all neighbors of a vertex with their edge weights.</p>
+                    <div class="code-block">
+                        <span class="keyword">foreach</span> (<span class="keyword">var</span> (neighbor, weight) <span class="keyword">in</span> graph.GetNeighbors(<span class="string">"A"</span>))
+                        <br />
+                        {
+                        <br />
+                            <div style="margin-left: 30px"> Console.WriteLine(<span class="string">$"Neighbor: {neighbor}, Weight: {weight}"</span>); </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="method-card">
+                    <h4>GetAllEdges</h4>
+                    <div class="method-signature">IEnumerable&lt;Edge&lt;T&gt;&gt; GetAllEdges()</div>
+                    <p>Returns all edges in the graph.</p>
+                    <div class="code-block">
+                        <span class="keyword">foreach</span> (<span class="keyword">var</span> edge <span class="keyword">in</span> graph.GetAllEdges())
+                        {
+                        Console.WriteLine(edge);
+                        }
+                    </div>
+                </div>
+            </section>
+
+            <section id="algorithms">
+                <h2>Algorithms</h2>
+
+                <h3>Traversal Algorithms</h3>
+
+                <div class="method-card">
+                    <h4>BFS (Breadth-First Search)</h4>
+                    <div class="method-signature">List&lt;T&gt; BFS(T start)</div>
+                    <p>Performs a breadth-first traversal starting from a given vertex.</p>
+                    <div class="code-block">
+                        <span class="keyword">var</span> visited = graph.BFS(<span class="string">"A"</span>);
+                        Console.WriteLine(<span class="keyword">string</span>.Join(<span class="string">" -> "</span>, visited));
+                    </div>
+                </div>
+
+                <div class="method-card">
+                    <h4>DFS (Depth-First Search)</h4>
+                    <div class="method-signature">List&lt;T&gt; DFS(T start)</div>
+                    <p>Performs a depth-first traversal starting from a given vertex.</p>
+                    <div class="code-block">
+                        <span class="keyword">var</span> visited = graph.DFS(<span class="string">"A"</span>);
+                        Console.WriteLine(<span class="keyword">string</span>.Join(<span class="string">" -> "</span>, visited));
+                    </div>
+                </div>
+
+                <h3>Shortest Path Algorithms</h3>
+
+                <div class="method-card">
+                    <h4>Dijkstra</h4>
+                    <div class="method-signature">Dictionary&lt;T, double&gt; Dijkstra(T source)</div>
+                    <p>Computes shortest distances from source to all other vertices using Dijkstra's algorithm.</p>
+                    <div class="code-block">
+                        <span class="keyword">var</span> distances = graph.Dijkstra(<span class="string">"A"</span>);
+                        <br />
+                        <span class="keyword">foreach</span> (<span class="keyword">var</span> (vertex, dist) <span class="keyword">in</span> distances)
+                        {
+                        <br/>
+                        <div style="margin-left: 40px"> Console.WriteLine(<span class="string">$"Distance to {vertex}: {dist}"</span>); </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="method-card">
+                    <h4>GetShortestPath</h4>
+                    <div class="method-signature">List&lt;T&gt;? GetShortestPath(T source, T target)</div>
+                    <p>Finds the shortest path between two vertices. Returns null if no path exists.</p>
+                    <div class="code-block">
+                        <span class="keyword">var</span> path = graph.GetShortestPath(<span class="string">"A"</span>, <span class="string">"D"</span>);
+                        <br />
+                        <span class="keyword">if</span> (path != <span class="keyword">null</span>)
+                        {
+                        <br />
+                        <div style="margin-left: 40px">Console.WriteLine(<span class="string">$"Path: {string.Join(" -> ", path)}"</span>); </div>
+                        }
+                        <span class="keyword">else</span>
+                        {
+                        <br/>
+
+                        <div style="margin-left: 40px">Console.WriteLine(<span class="string">"No path exists"</span>);</div>
+                        }
+                    </div>
+                </div>
+
+                <h3>Cycle Detection</h3>
+
+                <div class="method-card">
+                    <h4>HasCycle</h4>
+                    <div class="method-signature">bool HasCycle()</div>
+                    <p>Detects if the graph contains a cycle. Works for both directed and undirected graphs.</p>
+                    <div class="code-block">
+                        <span class="keyword">if</span> (graph.HasCycle())
+                        {
+                        Console.WriteLine(<span class="string">"Graph contains a cycle"</span>);
+                        }
+                    </div>
+                </div>
+
+                <h3>Topological Sort</h3>
+
+                <div class="method-card">
+                    <h4>TopologicalSort</h4>
+                    <div class="method-signature">List&lt;T&gt;? TopologicalSort()</div>
+                    <p>Performs a topological sort on a directed acyclic graph. Returns null if the graph contains a cycle.</p>
+                    <div class="warning">
+                        <strong>Note:</strong> Throws InvalidOperationException for undirected graphs.
+                    </div>
+                    <div class="code-block">
+                        <span class="keyword">var</span> sorted = directedGraph.TopologicalSort();
+                        <br/>
+                        <span class="keyword">if</span> (sorted != <span class="keyword">null</span>)
+                        {
+                        <br/>
+                        <div style="margin-left:40px"> Console.WriteLine(<span class="string">$"Topological order: {string.Join(" -> ", sorted)}"</span>); </div>
+                        }
+                        <span class="keyword">else</span>
+                        Console.WriteLine(<span class="string">"Graph contains a cycle"</span>);
+                        
+                    </div>
+                </div>
+
+                <h3>Connectivity</h3>
+
+                <div class="method-card">
+                    <h4>IsConnected</h4>
+                    <div class="method-signature">bool IsConnected()</div>
+                    <p>Checks if all vertices in the graph are reachable from each other.</p>
+                    <div class="code-block">
+                        <span class="keyword">if</span> (graph.IsConnected())
+                        {
+                        Console.WriteLine(<span class="string">"Graph is connected"</span>);
+                        }
+                    </div>
+                </div>
+
+                <div class="method-card">
+                    <h4>GetConnectedComponents</h4>
+                    <div class="method-signature">List&lt;List&lt;T&gt;&gt; GetConnectedComponents()</div>
+                    <p>Returns all connected components in the graph.</p>
+                    <div class="code-block">
+                        <span class="keyword">var</span> components = graph.GetConnectedComponents();
+                        <br/>
+                        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; components.Count; i++)
+                        {
+                        <br/>
+                        <div style="margin-left: 40px">Console.WriteLine(<span class="string">$"Component {i + 1}: {string.Join(", ", components[i])}"</span>);</div>
+                        }
+                    </div>
+                </div>
+
+                <h3>Utility Methods</h3>
+
+                <div class="method-card">
+                    <h4>GetTranspose</h4>
+                    <div class="method-signature">Graph&lt;T&gt; GetTranspose()</div>
+                    <p>Returns a new graph with all edges reversed. Only for directed graphs.</p>
+                    <div class="code-block">
+                        <span class="keyword">var</span> transposed = directedGraph.GetTranspose();
+                    </div>
+                </div>
+
+                <div class="method-card">
+                    <h4>Clear</h4>
+                    <div class="method-signature">void Clear()</div>
+                    <p>Removes all vertices and edges from the graph.</p>
+                    <div class="code-block">
+                        graph.Clear();
+                    </div>
+                </div>
+            </section>
+            <section id="graph-helpers">
+                <h2>GraphHelpers Class</h2>
+                <p>A utility class providing helper methods for graph operations, including file I/O.</p>
+
+                <h3>File I/O Operations</h3>
+
+                <div class="method-card">
+                    <h4>FromFile</h4>
+                    <div class="method-signature">
+                        public static (Graph&lt;int&gt; firstGraph, Graph&lt;int&gt; secondGraph)
+                        FromFile(string path, out int copies)
+                    </div>
+                    <p>Reads two integer graphs from a file and returns them as a tuple. Also reads an optional number of copies.</p>
+
+                    <p><strong>Parameters:</strong></p>
+                    <ul class="modern-list">
+                        <li><code>path</code> - Path to the file containing graph data</li>
+                        <li><code>copies</code> - Output parameter for the number of copies (defaults to 1 if not found)</li>
+                    </ul>
+
+                    <p><strong>Returns:</strong></p>
+                    <p>A tuple containing two Graph&lt;int&gt; objects</p>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
