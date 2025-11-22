@@ -8,19 +8,22 @@ namespace ExactAlgorythm
         public Graph<int> Graph { get; }
         private int _nextVertexId;
         private readonly Graph<int> _originalGraph; // Track original graph state
+        private readonly bool _bothUndirected; // Cache: whether both G1 and G2 are undirected
         
         public VF2State(Graph<int> graph, int nextVertexId)
         {
             Graph = new Graph<int>(graph);
             _originalGraph = new Graph<int>(graph);
             _nextVertexId = nextVertexId;
+            _bothUndirected = !graph.IsDirected; // Will be set properly when CreateMapping is called
         }
         
-        private VF2State(Graph<int> graph, Graph<int> originalGraph, int nextVertexId)
+        private VF2State(Graph<int> graph, Graph<int> originalGraph, int nextVertexId, bool bothUndirected)
         {
             Graph = new Graph<int>(graph);
             _originalGraph = originalGraph;
             _nextVertexId = nextVertexId;
+            _bothUndirected = bothUndirected;
         }
         
         public int GetNextVertexId() => _nextVertexId;
@@ -29,7 +32,7 @@ namespace ExactAlgorythm
         {
             var newGraph = new Graph<int>(Graph);
             newGraph.AddVertex(newVertex);
-            return new VF2State(newGraph, _originalGraph, _nextVertexId + 1);
+            return new VF2State(newGraph, _originalGraph, _nextVertexId + 1, _bothUndirected);
         }
         
         public Mapping CreateMapping(Graph<int> g1, Dictionary<int, int> vertexMap)
@@ -44,69 +47,53 @@ namespace ExactAlgorythm
                     addedVertices.Add(v2);
             }
             
-            if (g1.IsDirected)
+            // Determine if both graphs are undirected (check only once)
+            bool bothUndirected = !g1.IsDirected && !Graph.IsDirected;
+            
+            var processedEdges = new HashSet<(int, int)>();
+            
+            foreach (var edge in g1.GetAllEdges())
             {
-                // For DIRECTED graphs: track each direction separately
-                // An edge can be unidirectional (cost 1) or bidirectional (cost 2)
-                var processedEdges = new HashSet<(int, int)>();
+                int fromG2 = vertexMap[edge.From];
+                int toG2 = vertexMap[edge.To];
                 
-                foreach (var edge in g1.GetAllEdges())
+                // Normalize edge key to avoid processing duplicates
+                var edgeKey = fromG2 < toG2 ? (fromG2, toG2) : (toG2, fromG2);
+                
+                if (!processedEdges.Add(edgeKey))
+                    continue;
+                
+                if (bothUndirected)
                 {
-                    int fromG2 = vertexMap[edge.From];
-                    int toG2 = vertexMap[edge.To];
-                    
-                    if (processedEdges.Contains((fromG2, toG2)))
-                        continue;
-                    
-                    bool needsForward = !Graph.HasEdge(fromG2, toG2);
-                    bool needsReverse = !Graph.HasEdge(toG2, fromG2);
-                    
-                    // Check if reverse edge exists in G1
-                    bool hasReverseInG1 = g1.HasEdge(edge.To, edge.From);
-                    
-                    if (needsForward && needsReverse && hasReverseInG1)
+                    // Both undirected: check only one direction
+                    // Graph.AddEdge(a,b) automatically adds both a->b and b->a
+                    if (!Graph.HasEdge(fromG2, toG2))
                     {
-                        // Need bidirectional edge
-                        addedEdges.Add(new Edge<int>(fromG2, toG2, 1.0, false)); // Undirected = bidirectional
-                        processedEdges.Add((fromG2, toG2));
-                        processedEdges.Add((toG2, fromG2));
-                    }
-                    else if (needsForward)
-                    {
-                        // Need only forward edge
-                        addedEdges.Add(new Edge<int>(fromG2, toG2, 1.0, true));
-                        processedEdges.Add((fromG2, toG2));
-                    }
-                    
-                    // Handle reverse edge separately if it exists in G1 but not as part of bidirectional
-                    if (hasReverseInG1 && needsReverse && !needsForward)
-                    {
-                        addedEdges.Add(new Edge<int>(toG2, fromG2, 1.0, true));
-                        processedEdges.Add((toG2, fromG2));
+                        addedEdges.Add(new Edge<int>(fromG2, toG2, 1.0, false)); // cost 2
                     }
                 }
-            }
-            else
-            {
-                // For UNDIRECTED graphs: each edge is automatically bidirectional
-                var processedEdges = new HashSet<(int, int)>();
-                
-                foreach (var edge in g1.GetAllEdges())
+                else
                 {
-                    int fromG2 = vertexMap[edge.From];
-                    int toG2 = vertexMap[edge.To];
+                    // At least one directed: check BOTH directions separately
+                    bool hasForward = Graph.HasEdge(fromG2, toG2);
+                    bool hasReverse = Graph.HasEdge(toG2, fromG2);
                     
-                    // Normalize to avoid duplicates
-                    var edgeKey = fromG2 < toG2 ? (fromG2, toG2) : (toG2, fromG2);
-                    
-                    if (processedEdges.Add(edgeKey))
+                    if (!hasForward && !hasReverse)
                     {
-                        // Check if edge exists in either direction
-                        if (!Graph.HasEdge(fromG2, toG2))
-                        {
-                            addedEdges.Add(new Edge<int>(fromG2, toG2, 1.0, false)); // Undirected
-                        }
+                        // Both directions missing (cost 2)
+                        addedEdges.Add(new Edge<int>(fromG2, toG2, 1.0, false));
                     }
+                    else if (!hasForward)
+                    {
+                        // Only forward missing (cost 1)
+                        addedEdges.Add(new Edge<int>(fromG2, toG2, 1.0, true));
+                    }
+                    else if (!hasReverse)
+                    {
+                        // Only reverse missing (cost 1)
+                        addedEdges.Add(new Edge<int>(toG2, fromG2, 1.0, true));
+                    }
+                    // else: both exist, cost 0
                 }
             }
             
