@@ -3,81 +3,108 @@ using GraphLibrary.Helpers;
 using System.Diagnostics;
 using ExactAlgorythm;
 
-// Read input graphs from file
-if (args.Length == 0)
+class Program
 {
-    Console.WriteLine("Usage: ExactAlgorythm <input_file_path>");
-    Console.WriteLine("Example: ExactAlgorythm input.txt");
-    return;
-}
-
-string inputPath = args[0];
-
-if (!File.Exists(inputPath))
-{
-    Console.WriteLine($"Error: File '{inputPath}' not found.");
-    return;
-}
-
-try
-{
-    // Read graphs from file
-    var (g1, g2) = GraphHelpers.FromFile(inputPath, out int copies);
-    
-    Console.WriteLine("=== Input Data ===");
-    Console.WriteLine($"Pattern Graph G1 (vertices: {g1.VertexCount}, edges: {g1.EdgeCount})");
-    Console.WriteLine($"  Graph type: {(g1.IsDirected ? "Directed" : "Undirected")}");
-    Console.WriteLine($"Target Graph G2 (vertices: {g2.VertexCount}, edges: {g2.EdgeCount})");
-    Console.WriteLine($"  Graph type: {(g2.IsDirected ? "Directed" : "Undirected")}");
-    Console.WriteLine($"Required copies: {copies}");
-    Console.WriteLine();
-
-    // Create VF2 solver
-    var solver = new VF2Solver(g1, g2);
-    
-    // Measure execution time
-    var stopwatch = Stopwatch.StartNew();
-    
-    // Find k copies of G1 in G2 with minimal extensions
-    var result = solver.FindKCopies(copies);
-    
-    stopwatch.Stop();
-    
-    // Output results
-    Console.WriteLine("=== Results ===");
-    Console.WriteLine($"Total cost of extension: {result.TotalCost}");
-    Console.WriteLine($"Added vertices: {result.AddedVertices}");
-    Console.WriteLine($"Added edges (cost): {result.AddedEdges}");
-    Console.WriteLine($"Execution time: {stopwatch.ElapsedMilliseconds} ms");
-    Console.WriteLine();
-    
-    Console.WriteLine($"Found {result.Mappings.Count} copies:");
-    for (int i = 0; i < result.Mappings.Count; i++)
+    static void Main(string[] args)
     {
-        Console.WriteLine($"\nCopy {i + 1} (cost: {result.Mappings[i].Cost}):");
-        Console.WriteLine("  Vertex mapping:");
-        foreach (var (v1, v2) in result.Mappings[i].VertexMap)
+        // Check for quiet mode
+        bool quiet = args.Contains("--quiet");
+        args = args.Where(a => a != "--quiet").ToArray();
+
+        // Read input graphs from file
+        if (args.Length == 0)
         {
-            string marker = result.Mappings[i].AddedVertices.Contains(v2) ? " (new)" : "";
-            Console.WriteLine($"    {v1} -> {v2}{marker}");
-        }
-        
-        if (result.Mappings[i].AddedEdges.Count > 0)
-        {
-            Console.WriteLine("  Added edges:");
-            foreach (var edge in result.Mappings[i].AddedEdges)
+            if (!quiet)
             {
-                string direction = edge.IsDirected ? "->" : "<->";
-                int cost = edge.IsDirected ? 1 : 2;
-                Console.WriteLine($"    {edge.From} {direction} {edge.To} (cost: {cost})");
+                Console.WriteLine("Usage: ExactAlgorythm <input_file_path> [--quiet]");
+                Console.WriteLine("Example: ExactAlgorythm input.txt --quiet");
+            }
+            return;
+        }
+
+        string inputPath = args[0];
+
+        if (!File.Exists(inputPath))
+        {
+            if (!quiet)
+                Console.WriteLine($"Error: File '{inputPath}' not found.");
+            return;
+        }
+
+        try
+        {
+            // Read graphs from file
+            var (g1, g2) = GraphHelpers.FromFile(inputPath, out int copies);
+
+            if (!quiet)
+            {
+                Console.WriteLine("=== Input Data ===");
+                Console.WriteLine($"Pattern Graph G1 (vertices: {g1.VertexCount}, edges: {g1.EdgeCount})");
+                Console.WriteLine($"  Graph type: {(g1.IsDirected ? "Directed" : "Undirected")}");
+                Console.WriteLine($"Target Graph G2 (vertices: {g2.VertexCount}, edges: {g2.EdgeCount})");
+                Console.WriteLine($"  Graph type: {(g2.IsDirected ? "Directed" : "Undirected")}");
+                Console.WriteLine($"Required copies: {copies}");
+                Console.WriteLine();
+            }
+
+            // Create VF2 solver
+            var solver = new VF2Solver(g1, g2);
+
+            // Measure execution time
+            var stopwatch = Stopwatch.StartNew();
+
+            // Find k copies of G1 in G2 with minimal extensions
+            var result = solver.FindKCopies(copies);
+
+            stopwatch.Stop();
+
+            // QUIET MODE → only print COST and exit
+            if (quiet)
+            {
+                Console.WriteLine($"COST={result.TotalCost}");
+                return;
+            }
+
+            // Normal verbose output
+            Console.WriteLine("=== Results ===");
+            Console.WriteLine($"Total cost of extension: {result.TotalCost}");
+            Console.WriteLine($"Added vertices: {result.AddedVertices}");
+            Console.WriteLine($"Added edges (cost): {result.AddedEdges}");
+            Console.WriteLine($"Execution time: {stopwatch.ElapsedMilliseconds} ms");
+            Console.WriteLine();
+
+            Console.WriteLine($"Found {result.Mappings.Count} copies:");
+            for (int i = 0; i < result.Mappings.Count; i++)
+            {
+                Console.WriteLine($"\nCopy {i + 1} (cost: {result.Mappings[i].Cost}):");
+                Console.WriteLine("  Vertex mapping:");
+                foreach (var (v1, v2) in result.Mappings[i].VertexMap)
+                {
+                    string marker = result.Mappings[i].AddedVertices.Contains(v2) ? " (new)" : "";
+                    Console.WriteLine($"    {v1} -> {v2}{marker}");
+                }
+
+                if (result.Mappings[i].AddedEdges.Count > 0)
+                {
+                    Console.WriteLine("  Added edges:");
+                    foreach (var edge in result.Mappings[i].AddedEdges)
+                    {
+                        string direction = edge.IsDirected ? "->" : "<->";
+                        int cost = edge.IsDirected ? 1 : 2;
+                        Console.WriteLine($"    {edge.From} {direction} {edge.To} (cost: {cost})");
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            if (!quiet)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
             }
         }
     }
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Error: {ex.Message}");
-    Console.WriteLine($"Stack trace: {ex.StackTrace}");
 }
 
 
