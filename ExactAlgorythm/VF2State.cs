@@ -7,7 +7,7 @@ namespace ExactAlgorythm
     {
         public Graph<int> Graph { get; }
         private int _nextVertexId;
-        private readonly Graph<int> _originalGraph; // Track original graph state
+        private readonly Graph<int> _originalGraph;
         
         public VF2State(Graph<int> graph, int nextVertexId)
         {
@@ -44,10 +44,12 @@ namespace ExactAlgorythm
                     addedVertices.Add(v2);
             }
             
-            if (g1.IsDirected)
+            // Check if both graphs are undirected
+            bool bothUndirected = !g1.IsDirected && !Graph.IsDirected;
+            
+            if (bothUndirected)
             {
-                // For DIRECTED graphs: track each direction separately
-                // An edge can be unidirectional (cost 1) or bidirectional (cost 2)
+                // CASE 1: Both undirected - one edge represents both directions
                 var processedEdges = new HashSet<(int, int)>();
                 
                 foreach (var edge in g1.GetAllEdges())
@@ -55,40 +57,44 @@ namespace ExactAlgorythm
                     int fromG2 = vertexMap[edge.From];
                     int toG2 = vertexMap[edge.To];
                     
-                    if (processedEdges.Contains((fromG2, toG2)))
+                    // Normalize: smaller vertex first to avoid duplicates
+                    var edgeKey = fromG2 < toG2 ? (fromG2, toG2) : (toG2, fromG2);
+                    
+                    if (!processedEdges.Add(edgeKey))
                         continue;
                     
-                    bool needsForward = !Graph.HasEdge(fromG2, toG2);
-                    bool needsReverse = !Graph.HasEdge(toG2, fromG2);
-                    
-                    // Check if reverse edge exists in G1
-                    bool hasReverseInG1 = g1.HasEdge(edge.To, edge.From);
-                    
-                    if (needsForward && needsReverse && hasReverseInG1)
+                    if (!Graph.HasEdge(fromG2, toG2))
                     {
-                        // Need bidirectional edge
-                        addedEdges.Add(new Edge<int>(fromG2, toG2, 1.0, false)); // Undirected = bidirectional
-                        processedEdges.Add((fromG2, toG2));
-                        processedEdges.Add((toG2, fromG2));
+                        // Undirected edge missing (cost 2 - both directions)
+                        addedEdges.Add(new Edge<int>(fromG2, toG2, 1.0, false));
                     }
-                    else if (needsForward)
+                }
+            }
+            else if (g1.IsDirected)
+            {
+                // CASE 2: G1 is directed - treat each direction independently
+                var processedEdges = new HashSet<(int, int)>();
+                
+                foreach (var edge in g1.GetAllEdges())
+                {
+                    int fromG2 = vertexMap[edge.From];
+                    int toG2 = vertexMap[edge.To];
+                    
+                    // Don't normalize - each direction is separate!
+                    if (!processedEdges.Add((fromG2, toG2)))
+                        continue;
+                    
+                    if (!Graph.HasEdge(fromG2, toG2))
                     {
-                        // Need only forward edge
+                        // Add missing directed edge (cost 1)
                         addedEdges.Add(new Edge<int>(fromG2, toG2, 1.0, true));
-                        processedEdges.Add((fromG2, toG2));
-                    }
-                    
-                    // Handle reverse edge separately if it exists in G1 but not as part of bidirectional
-                    if (hasReverseInG1 && needsReverse && !needsForward)
-                    {
-                        addedEdges.Add(new Edge<int>(toG2, fromG2, 1.0, true));
-                        processedEdges.Add((toG2, fromG2));
                     }
                 }
             }
             else
             {
-                // For UNDIRECTED graphs: each edge is automatically bidirectional
+                // CASE 3: G1 undirected, G2 directed
+                // Each undirected edge in G1 needs BOTH directions in G2
                 var processedEdges = new HashSet<(int, int)>();
                 
                 foreach (var edge in g1.GetAllEdges())
@@ -96,17 +102,31 @@ namespace ExactAlgorythm
                     int fromG2 = vertexMap[edge.From];
                     int toG2 = vertexMap[edge.To];
                     
-                    // Normalize to avoid duplicates
+                    // Normalize to avoid processing same edge pair twice
                     var edgeKey = fromG2 < toG2 ? (fromG2, toG2) : (toG2, fromG2);
                     
-                    if (processedEdges.Add(edgeKey))
+                    if (!processedEdges.Add(edgeKey))
+                        continue;
+                    
+                    bool hasForward = Graph.HasEdge(fromG2, toG2);
+                    bool hasReverse = Graph.HasEdge(toG2, fromG2);
+                    
+                    if (!hasForward && !hasReverse)
                     {
-                        // Check if edge exists in either direction
-                        if (!Graph.HasEdge(fromG2, toG2))
-                        {
-                            addedEdges.Add(new Edge<int>(fromG2, toG2, 1.0, false)); // Undirected
-                        }
+                        // Both directions missing (cost 2)
+                        addedEdges.Add(new Edge<int>(fromG2, toG2, 1.0, false));
                     }
+                    else if (!hasForward)
+                    {
+                        // Only forward missing (cost 1)
+                        addedEdges.Add(new Edge<int>(fromG2, toG2, 1.0, true));
+                    }
+                    else if (!hasReverse)
+                    {
+                        // Only reverse missing (cost 1)
+                        addedEdges.Add(new Edge<int>(toG2, fromG2, 1.0, true));
+                    }
+                    // else: both exist, cost 0
                 }
             }
             
