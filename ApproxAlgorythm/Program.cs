@@ -50,13 +50,13 @@ namespace IHGEAlgorithm
                 }
 
                 // Create LIHGE solver
-                var solver = new SingleIHGESolver(g1, g2);
+                var solver = new MultiIHGESolver(g1, g2);
 
                 // Measure execution time
                 var stopwatch = Stopwatch.StartNew();
 
                 // Find k copies of G1 in G2 with minimal extensions
-                var result = solver.FindSingleCopy();
+                var result = solver.FindKCopies(k: copies);
 
                 stopwatch.Stop();
 
