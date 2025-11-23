@@ -181,7 +181,7 @@ namespace ExactAlgorythm
         private Graph<int> ApplyMapping(Graph<int> g2, Mapping mapping)
         {
             var result = new Graph<int>(g2);
-
+            
             // Add new vertices
             foreach (var v in mapping.AddedVertices)
             {
@@ -189,14 +189,27 @@ namespace ExactAlgorythm
                 if (v >= _nextVertexId)
                     _nextVertexId = v + 1;
             }
-
+            
             // Add new edges
             foreach (var edge in mapping.AddedEdges)
             {
-                if (!result.HasEdge(edge.From, edge.To))
-                    result.AddEdge(edge.From, edge.To);
+                if (edge.IsDirected)
+                {
+                    // Directed edge: add only one direction
+                    if (!result.HasEdge(edge.From, edge.To))
+                        result.AddEdge(edge.From, edge.To);
+                }
+                else
+                {
+                    // Undirected edge: add BOTH directions
+                    if (!result.HasEdge(edge.From, edge.To))
+                        result.AddEdge(edge.From, edge.To);
+                    
+                    if (!result.HasEdge(edge.To, edge.From))
+                        result.AddEdge(edge.To, edge.From);
+                }
             }
-
+            
             return result;
         }
 
