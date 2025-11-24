@@ -8,13 +8,13 @@ class RandomGraphTests
         string folder = "tests";
         Directory.CreateDirectory(folder);
 
-        int numTests = 10; // ile plików chcesz wygenerować
+        int numTests = 2; // ile plików chcesz wygenerować
         Random rnd = new Random();
 
         for (int t = 1; t <= numTests; t++)
         {
             // Rozmiary grafów
-            int n1 = rnd.Next(3, 8);          // liczba wierzchołków G1
+            int n1 = rnd.Next(20, 30);          // liczba wierzchołków G1
             int n2 = rnd.Next(n1, n1 + 6);    // liczba wierzchołków G2
 
             // Prawdopodobieństwa krawędzi

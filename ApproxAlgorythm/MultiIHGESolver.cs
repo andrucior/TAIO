@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+namespace IHGEAlgorithm;
 public class MultiIHGESolver
 {
     private readonly Graph<int> g1;
@@ -37,22 +37,22 @@ public class MultiIHGESolver
         for (int i = 0; i < n1 * k; i++)
             baseCandidates.Add(nextPlaceholderId + i);
 
-        List<Dictionary<int, int>> bestPhis = null;
+        List<Dictionary<int, int>> bestPhis = new List<Dictionary<int, int>>();
         int bestCost = int.MaxValue;
 
-        int restarts = Math.Max(10, 5 + k * 1); // Więcej restartów
+        int restarts = Math.Max(10, 8 + k * 1); // Więcej restartów
         for (int run = 0; run < restarts; run++)
         {
             var phis = InitializePhis(k, v1List, baseCandidates);
 
-            bool changed = true;
+
             int stableIterations = 0;
             int iter = 0;
 
             while (stableIterations < 5 && iter < maxIterations)
             {
                 iter++;
-                changed = false;
+
 
                 var newPhis = new List<Dictionary<int, int>>();
 
@@ -81,7 +81,7 @@ public class MultiIHGESolver
 
                 if (!AllMappingsEqual(phis, newPhis))
                 {
-                    changed = true;
+
                     stableIterations = 0;
                 }
                 else
@@ -349,24 +349,54 @@ public class MultiIHGESolver
 
         return bestPhi;
     }
-
     private int ComputeSingleMappingCost(Dictionary<int, int> phi)
     {
         int cost = 0;
-
-        // Koszt placeholderów
+        var reverse = new Dictionary<int, int>();
+        foreach (var (u, v) in phi)
+        {
+            if (g2.ContainsVertex(v))
+            {
+                if (reverse.ContainsKey(v))
+                    cost += 1000000; // OGROMNA KARA aby wymusić różne obrazy
+                else
+                    reverse[v] = u;
+            }
+        }
+        // koszt placeholderów
         foreach (var v in phi.Values)
             if (!g2.ContainsVertex(v))
                 cost++;
 
-        // Koszt brakujących krawędzi z PRAWIDŁOWYM liczeniem
+        // koszt brakujących krawędzi — spójna obsługa kierunkowości:
         foreach (var edge in g1.GetAllEdges())
         {
             int u = phi[edge.From];
             int v = phi[edge.To];
-            if (!g2.HasEdge(u, v))
+
+            if (edge.IsDirected)
             {
-                cost += edge.IsDirected ? 1 : 2;
+                // wymóg jednego łuku u->v
+                if (!g2.HasEdge(u, v))
+                    cost += 1;
+            }
+            else
+            {
+                // g1 ma krawędź nie-skierowaną między From i To
+                if (g2.IsDirected)
+                {
+                    // target skierowany: wymagamy obu łuków u->v i v->u,
+                    // każdy brakujący łuk kosztuje 1
+                    if (!g2.HasEdge(u, v)) cost += 1;
+                    if (!g2.HasEdge(v, u)) cost += 1;
+                }
+                else
+                {
+                    // target nie-skierowany: wymagamy krawędzi (u,v) (jako para),
+                    // brak -> koszt 2
+                    if (!g2.HasEdge(u, v) && !g2.HasEdge(v, u))
+                        cost += 2;
+                }
             }
         }
 
@@ -568,45 +598,55 @@ public class MultiIHGESolver
 
         return newPhis;
     }
-
     private int ComputeGlobalCost(List<Dictionary<int, int>> phis)
     {
-        // Globalny koszt = unikalne dodane wierzchołki + unikalne dodane krawędzie
         var addedVertices = new HashSet<int>();
-        var addedEdges = new HashSet<(int, int, bool)>(); // (from, to, isDirected)
+        var addedDirectedArcs = new HashSet<(int, int)>(); // u->v
+        var addedUndirectedEdges = new HashSet<(int, int)>(); // min,max for undirected
 
         foreach (var phi in phis)
         {
-            // Dodane wierzchołki
             foreach (var v in phi.Values)
-            {
                 if (!g2.ContainsVertex(v))
                     addedVertices.Add(v);
-            }
 
-            // Dodane krawędzie
             foreach (var edge in g1.GetAllEdges())
             {
                 int u = phi[edge.From];
                 int v = phi[edge.To];
 
-                if (!g2.HasEdge(u, v))
+                if (edge.IsDirected)
                 {
-                    addedEdges.Add((u, v, edge.IsDirected));
+                    if (!g2.HasEdge(u, v))
+                        addedDirectedArcs.Add((u, v));
+                }
+                else
+                {
+                    if (g2.IsDirected)
+                    {
+                        // wymagamy obu łuków
+                        if (!g2.HasEdge(u, v)) addedDirectedArcs.Add((u, v));
+                        if (!g2.HasEdge(v, u)) addedDirectedArcs.Add((v, u));
+                    }
+                    else
+                    {
+                        // target nie-skierowany: traktuj (min,max) jako klucz
+                        var key = u < v ? (u, v) : (v, u);
+                        if (!g2.HasEdge(u, v) && !g2.HasEdge(v, u))
+                            addedUndirectedEdges.Add(key);
+                    }
                 }
             }
         }
 
-        // Liczenie kosztu tak jak w Mapping.Cost
         int edgeCost = 0;
-        foreach (var edge in addedEdges)
-        {
-            edgeCost += edge.Item3 ? 1 : 2; // IsDirected ? 1 : 2
-        }
+        // każdy dodany łuk kosztuje 1
+        edgeCost += addedDirectedArcs.Count * 1;
+        // każda dodana nie-skierowana krawędź kosztuje 2
+        edgeCost += addedUndirectedEdges.Count * 2;
 
         return addedVertices.Count + edgeCost;
     }
-
     private Mapping BuildMapping(Dictionary<int, int> phi)
     {
         var addedV = new HashSet<int>();
@@ -621,9 +661,26 @@ public class MultiIHGESolver
             int u = phi[edge.From];
             int v = phi[edge.To];
 
-            if (!g2.HasEdge(u, v))
+            if (edge.IsDirected)
             {
-                addedE.Add(new Edge<int>(u, v, 1.0, edge.IsDirected));
+                if (!g2.HasEdge(u, v))
+                    addedE.Add(new Edge<int>(u, v, 1.0, true));
+            }
+            else
+            {
+                if (g2.IsDirected)
+                {
+                    if (!g2.HasEdge(u, v)) addedE.Add(new Edge<int>(u, v, 1.0, true));
+                    if (!g2.HasEdge(v, u)) addedE.Add(new Edge<int>(v, u, 1.0, true));
+                }
+                else
+                {
+                    if (!g2.HasEdge(u, v) && !g2.HasEdge(v, u))
+                    {
+                        // dodaj jako nie-skierowana (typu Edge z IsDirected=false)
+                        addedE.Add(new Edge<int>(u, v, 1.0, false));
+                    }
+                }
             }
         }
 

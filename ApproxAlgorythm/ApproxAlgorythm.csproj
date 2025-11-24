@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ExactAlgorythm\ExactAlgorythm.csproj" />
+    <ProjectReference Include="..\GraphLibrary\GraphLibrary.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+namespace IHGEAlgorithm;
 
 public class SingleIHGESolver
 {
@@ -12,7 +13,7 @@ public class SingleIHGESolver
     private int maxIterations = 500;
     private readonly Random rnd = new Random(0);
 
-    public SingleIHGESolver(Graph<int> g1, Graph<int> g2)
+public SingleIHGESolver(Graph<int> g1, Graph<int> g2)
     {
         this.g1 = g1;
         this.g2 = g2;
@@ -31,7 +32,7 @@ public class SingleIHGESolver
         for (int i = 0; i < n1; i++)
             baseCandidates.Add(nextPlaceholderId + i);
 
-        Dictionary<int, int> bestPhi = null;
+        Dictionary<int, int>? bestPhi = null;
         int bestCost = int.MaxValue;
 
         int restarts = 15; // kilka restartów dla większych szans na globalne optimum

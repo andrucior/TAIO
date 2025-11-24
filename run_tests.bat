@@ -18,11 +18,11 @@ for %%F in (%TESTDIR%\*.txt) do (
     echo ===============================
     echo Test file: %%F
     echo ---- EXACT ----
-    dotnet run --project %EXACT% -- %%F --quiet
+    dotnet run --project %EXACT% -- %%F
 
     echo ---- APPROX ----
 
-    dotnet run --project %APPROX% -- %%F --quiet
+    dotnet run --project %APPROX% -- %%F
 
 
     echo.

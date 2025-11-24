@@ -1,5 +1,5 @@
-﻿using GraphLibrary.Model;
-using GraphLibrary.Helpers;
+﻿using GraphLibrary.Helpers;
+using GraphLibrary.Model;
 using System.Diagnostics;
 
 namespace IHGEAlgorithm
@@ -9,17 +9,34 @@ namespace IHGEAlgorithm
 
         static void Main(string[] args)
         {
+            // Check for test mode
+            if (args.Length > 0 && args[0] == "--test")
+            {
+                var testRunner = new TestRunner(); // upewnij się, że masz klasę TestRunner
+                string testDirectory = args.Length > 1 ? args[1] : "testy";
+                testRunner.RunAllTests(testDirectory);
+                return;
+            }
+
             // Check for quiet mode
             bool quiet = args.Contains("--quiet");
             args = args.Where(a => a != "--quiet").ToArray();
 
-            // Read input graphs from file
+
+
             if (args.Length == 0)
             {
                 if (!quiet)
                 {
-                    Console.WriteLine("Usage: IHGEAlgorithm <input_file_path> [--quiet]");
-                    Console.WriteLine("Example: IHGEAlgorithm input.txt --quiet");
+                    Console.WriteLine("Usage:");
+                    Console.WriteLine("  IHGEAlgorithm <input_file_path> [--quiet]    - Run single test");
+                    Console.WriteLine("  IHGEAlgorithm --test [directory]            - Run all tests");
+                    Console.WriteLine();
+                    Console.WriteLine("Examples:");
+                    Console.WriteLine("  IHGEAlgorithm input.txt");
+                    Console.WriteLine("  IHGEAlgorithm --quiet input.txt");
+                    Console.WriteLine("  IHGEAlgorithm --test");
+                    Console.WriteLine("  IHGEAlgorithm --test testy");
                 }
                 return;
             }
@@ -68,7 +85,7 @@ namespace IHGEAlgorithm
                 }
 
                 // Normal verbose output
-                Console.WriteLine("=== Results for a single copy ===");
+                Console.WriteLine("=== Results for multiple copies ===");
                 Console.WriteLine($"Total cost of extension: {result.TotalCost}");
                 Console.WriteLine($"Added vertices: {result.AddedVertices}");
                 Console.WriteLine($"Added edges (cost): {result.AddedEdges}");
