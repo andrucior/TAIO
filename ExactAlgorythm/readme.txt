@@ -1,0 +1,64 @@
+1. OPIS PROGRAMU
+
+Program implementuje algorytm VF2 z rozszerzeniami do znajdowania k kopii grafu wzorca G1 w grafie docelowym G2 z minimalnym kosztem rozszerzenia.
+
+TECHNOLOGIA: .NET 9.0, C# 13.0 ALGORYTM: VF2 z branch and bound, heurystyka wyboru wierzchołków 
+KOSZT: wierzchołek = 1, krawędź skierowana = 1, nieskierowana = 2
+
+GŁÓWNE KOMPONENTY:
+•	VF2Solver.cs: rekurencyjne przeszukiwanie z pruningiem
+•	VF2State.cs: zarządzanie stanem i obliczanie kosztów
+•	GraphLibrary: struktura danych grafu (skierowany/nieskierowany)
+
+----------------------------------------------------------------------------
+
+2. KOMPILACJA
+
+WYMAGANIA:
+•	.NET 9.0 SDK (sprawdź: dotnet --version)
+
+cd ExactAlgorythm
+dotnet build -c Release
+
+----------------------------------------------------------------------------
+
+3. URUCHOMIENIE
+
+Konkretny test:
+dotnet run -c Release -- <plik_wejściowy>
+
+Przykład
+dotnet run -c Release -- testy/test1.txt
+
+Wszystkie testy:
+dotnet run -c Release -- --test
+
+
+FORMAT PLIKU WEJŚCIOWEGO:
+<n1>                    # liczba wierzchołków G1
+<macierz n1×n1>        # macierz sąsiedztwa G1
+<n2>                    # liczba wierzchołków G2
+<macierz n2×n2>        # macierz sąsiedztwa G2
+<k>                     # liczba poszukiwanych kopii
+
+----------------------------------------------------------------------------
+
+4. TESTY LOSOWE
+
+Do wygenerowania testów losowych potrzebne są następujące kroki:
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+. .\randomTest.ps1
+New-RandomGraphTestFile -n1 4 -n2 10 -k 2 -Count X -Output "testy_losowe"
+
+W nowo powstałym folderze "testy_losowe" pojawi się X losowych testów z podanymi parametrami
+
+----------------------------------------------------------------------------
+
+5. CZAS KOMPILACJI
+
+Rozmiar G1	Rozmiar G2	Liczba kopii	Oczekiwany czas
+≤ 4	           ≤ 8	            1-2	        < 1 sekunda
+5-6	           ≤ 10	            1-3        	1-10 sekund
+≥ 6	           > 10	            ≥ 3	        > 1 minuta
+
