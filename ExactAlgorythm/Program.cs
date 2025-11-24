@@ -3,11 +3,26 @@ using GraphLibrary.Helpers;
 using System.Diagnostics;
 using ExactAlgorythm;
 
-// Read input graphs from file
+// Check for test mode
+if (args.Length > 0 && args[0] == "--test")
+{
+    var testRunner = new TestRunner();
+    string testDirectory = args.Length > 1 ? args[1] : "testy";
+    testRunner.RunAllTests(testDirectory);
+    return;
+}
+
+// Normal mode - single file execution
 if (args.Length == 0)
 {
-    Console.WriteLine("Usage: ExactAlgorythm <input_file_path>");
-    Console.WriteLine("Example: ExactAlgorythm input.txt");
+    Console.WriteLine("Usage:");
+    Console.WriteLine("  ExactAlgorythm <input_file_path>          - Run single test");
+    Console.WriteLine("  ExactAlgorythm --test [directory]         - Run all tests");
+    Console.WriteLine();
+    Console.WriteLine("Examples:");
+    Console.WriteLine("  ExactAlgorythm test1.txt");
+    Console.WriteLine("  ExactAlgorythm --test");
+    Console.WriteLine("  ExactAlgorythm --test testy");
     return;
 }
 
