@@ -73,6 +73,11 @@ try
             }
         }
     }
+
+    Console.WriteLine("=== Validation ===");
+    var validationResult = ResultValidator.Validate(g1, g2, result, copies);
+    Console.WriteLine(validationResult);
+    Console.WriteLine();
 }
 catch (Exception ex)
 {
@@ -107,6 +112,16 @@ public class Mapping
         }
         
         Cost = addedVertices.Count + edgeCost;
+    }
+
+    public static bool AreEqual(Mapping a, Mapping b)
+    {
+        return
+           a.Cost == b.Cost &&
+           a.VertexMap.OrderBy(kv => kv.Key).SequenceEqual(
+               b.VertexMap.OrderBy(kv => kv.Key)) &&
+           a.AddedVertices.SetEquals(b.AddedVertices) &&
+           a.AddedEdges.SequenceEqual(b.AddedEdges);
     }
 }
 
