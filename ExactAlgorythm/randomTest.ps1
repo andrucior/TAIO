@@ -4,7 +4,7 @@ function New-RandomGraphTestFiles {
         [int]$n1 = 4,
         [int]$n2 = 10,
         [int]$k = 2,
-        [string]$OutputDir = "./testy"
+        [string]$OutputDir = "./testy_losowe"
     )
 
     function New-Matrix($n) {
