@@ -24,10 +24,15 @@ dotnet build -c Release
 
 3. URUCHOMIENIE
 
+Konkretny test:
 dotnet run -c Release -- <plik_wejściowy>
 
 Przykład
 dotnet run -c Release -- testy/test1.txt
+
+Wszystkie testy:
+dotnet run -c Release -- --test
+
 
 FORMAT PLIKU WEJŚCIOWEGO:
 <n1>                    # liczba wierzchołków G1
