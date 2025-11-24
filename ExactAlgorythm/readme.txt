@@ -43,7 +43,19 @@ FORMAT PLIKU WEJŚCIOWEGO:
 
 ----------------------------------------------------------------------------
 
-4. CZAS KOMPILACJI
+4. TESTY LOSOWE
+
+Do wygenerowania testów losowych potrzebne są następujące kroki:
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+. .\randomTest.ps1
+New-RandomGraphTestFile -n1 4 -n2 10 -k 2 -Count X -Output "testy_losowe"
+
+W nowo powstałym folderze "testy_losowe" pojawi się X losowych testów z podanymi parametrami
+
+----------------------------------------------------------------------------
+
+5. CZAS KOMPILACJI
 
 Rozmiar G1	Rozmiar G2	Liczba kopii	Oczekiwany czas
 ≤ 4	           ≤ 8	            1-2	        < 1 sekunda
