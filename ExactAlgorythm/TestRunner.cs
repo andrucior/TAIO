@@ -23,7 +23,9 @@ namespace ExactAlgorythm
             { "test3_skier.txt", 3 },
             { "test4_skier.txt", 2 },
             { "test5_skier.txt", 11 },
-            { "test6_skier.txt", 5 }
+            { "test6_skier.txt", 5 },
+            { "test7_skier.txt", 3 },
+            { "test8_skier.txt", 4 }
         };
 
         public void RunAllTests(string testsDirectory = "testy")
