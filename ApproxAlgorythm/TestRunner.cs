@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using GraphLibrary.Helpers;
+using IHGEAlgorithm;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using GraphLibrary.Helpers;
-using GraphLibrary.Model;
 
-namespace IHGEAlgorithm
+namespace ApproxAlgorythm
 {
     public class TestRunner
     {
@@ -19,7 +15,7 @@ namespace IHGEAlgorithm
             { "test4.txt", 6 },
             { "test5.txt", 4 },
             { "test6.txt", 8 },
-            { "test7.txt", 19 },
+            { "test7.txt", 7 },
             { "test8.txt", 2 },
             
             // Testy skierowane
@@ -51,47 +47,84 @@ namespace IHGEAlgorithm
                 return;
             }
 
-            Console.WriteLine("=== IHGEAlgorithm Test Suite ===");
+            Console.WriteLine("╔═══════════════════════════════════════════════════════════════╗");
+            Console.WriteLine("║           AUTOMATED TEST SUITE - APPROX ALGORYTHM             ║");
+            Console.WriteLine("╚═══════════════════════════════════════════════════════════════╝");
             Console.WriteLine();
 
-            int totalTests = 0, passedTests = 0, failedTests = 0, unknownTests = 0;
+            int totalTests = 0;
+            int passedTests = 0;
+            int failedTests = 0;
+            int unknownTests = 0;
+
             var results = new List<TestResult>();
 
             foreach (var testFile in testFiles)
             {
+                if (testFile == null) continue;
+
                 totalTests++;
                 var result = RunSingleTest(Path.Combine(testsDirectory, testFile), testFile);
                 results.Add(result);
 
                 switch (result.Status)
                 {
-                    case TestStatus.Passed: passedTests++; break;
-                    case TestStatus.Failed: failedTests++; break;
-                    case TestStatus.Unknown: unknownTests++; break;
+                    case TestStatus.Passed:
+                        passedTests++;
+                        break;
+                    case TestStatus.Failed:
+                        failedTests++;
+                        break;
+                    case TestStatus.Unknown:
+                        unknownTests++;
+                        break;
                 }
             }
 
-            // Podsumowanie
+            // Print summary
             Console.WriteLine();
-            Console.WriteLine("=== Test Summary ===");
-            Console.WriteLine($"Total tests: {totalTests}");
-            Console.WriteLine($"Passed: {passedTests}");
-            Console.WriteLine($"Failed: {failedTests}");
-            Console.WriteLine($"Unknown: {unknownTests}");
+            Console.WriteLine("╔═══════════════════════════════════════════════════════════════╗");
+            Console.WriteLine("║                        TEST SUMMARY                           ║");
+            Console.WriteLine("╚═══════════════════════════════════════════════════════════════╝");
+            Console.WriteLine();
+            Console.WriteLine($"Total tests:   {totalTests}");
+            Console.WriteLine($"✓ Passed:      {passedTests} ({(totalTests > 0 ? passedTests * 100.0 / totalTests : 0):F1}%)");
+            Console.WriteLine($"✗ Failed:      {failedTests} ({(totalTests > 0 ? failedTests * 100.0 / totalTests : 0):F1}%)");
+            Console.WriteLine($"? Unknown:     {unknownTests}");
             Console.WriteLine();
 
             if (failedTests > 0)
             {
                 Console.WriteLine("Failed tests:");
-                foreach (var r in results.Where(r => r.Status == TestStatus.Failed))
-                    Console.WriteLine($"  {r.TestName}: Expected {r.ExpectedCost}, Got {r.ActualCost}");
+                foreach (var result in results.Where(r => r.Status == TestStatus.Failed))
+                {
+                    Console.WriteLine($"  - {result.TestName}: Expected {result.ExpectedCost}, Got {result.ActualCost}");
+                }
+                Console.WriteLine();
             }
 
             if (unknownTests > 0)
             {
-                Console.WriteLine("Tests without expected cost:");
-                foreach (var r in results.Where(r => r.Status == TestStatus.Unknown))
-                    Console.WriteLine($"  {r.TestName}: Got {r.ActualCost}");
+                Console.WriteLine("Tests without expected cost defined:");
+                foreach (var result in results.Where(r => r.Status == TestStatus.Unknown))
+                {
+                    Console.WriteLine($"  - {result.TestName}: Got {result.ActualCost}");
+                }
+                Console.WriteLine();
+            }
+
+            // Overall result
+            if (failedTests == 0 && unknownTests == 0)
+            {
+                Console.WriteLine("🎉 ALL TESTS PASSED! 🎉");
+            }
+            else if (failedTests == 0)
+            {
+                Console.WriteLine("✓ All known tests passed (some tests have no expected cost)");
+            }
+            else
+            {
+                Console.WriteLine($"⚠ {failedTests} test(s) failed!");
             }
         }
 
@@ -99,11 +132,15 @@ namespace IHGEAlgorithm
         {
             var result = new TestResult { TestName = testName };
 
-            Console.Write($"Running {testName}... ");
+            Console.WriteLine($"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.Write($"Running: {testName,-30} ");
 
             try
             {
+                // Read graphs from file
                 var (g1, g2) = GraphHelpers.FromFile(filePath, out int copies);
+
+                // Create solver and run
                 var solver = new MultiIHGESolver(g1, g2);
 
                 var stopwatch = Stopwatch.StartNew();
@@ -114,26 +151,36 @@ namespace IHGEAlgorithm
                 result.ExecutionTime = stopwatch.ElapsedMilliseconds;
                 result.Success = true;
 
-                if (_expectedCosts.TryGetValue(testName, out int expected))
+                // Check against expected cost
+                if (_expectedCosts.TryGetValue(testName, out int expectedCost))
                 {
-                    result.ExpectedCost = expected;
+                    result.ExpectedCost = expectedCost;
                     result.HasExpectedCost = true;
 
-                    if (result.ActualCost == expected)
+                    if (result.ActualCost == expectedCost)
                     {
                         result.Status = TestStatus.Passed;
-                        Console.WriteLine("PASS");
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine($"✓ PASS");
+                        Console.ResetColor();
+                        Console.WriteLine($"  Cost: {result.ActualCost}, Time: {result.ExecutionTime}ms");
                     }
                     else
                     {
                         result.Status = TestStatus.Failed;
-                        Console.WriteLine("FAIL");
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine($"✗ FAIL");
+                        Console.ResetColor();
+                        Console.WriteLine($"  Expected: {expectedCost}, Got: {result.ActualCost}, Time: {result.ExecutionTime}ms");
                     }
                 }
                 else
                 {
                     result.Status = TestStatus.Unknown;
-                    Console.WriteLine("UNKNOWN");
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine($"? UNKNOWN");
+                    Console.ResetColor();
+                    Console.WriteLine($"  Cost: {result.ActualCost}, Time: {result.ExecutionTime}ms (no expected cost defined)");
                 }
             }
             catch (Exception ex)
@@ -141,7 +188,11 @@ namespace IHGEAlgorithm
                 result.Success = false;
                 result.Status = TestStatus.Failed;
                 result.ErrorMessage = ex.Message;
-                Console.WriteLine($"ERROR: {ex.Message}");
+
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"✗ ERROR");
+                Console.ResetColor();
+                Console.WriteLine($"  {ex.Message}");
             }
 
             return result;

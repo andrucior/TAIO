@@ -1,4 +1,5 @@
-﻿using GraphLibrary.Helpers;
+﻿using ApproxAlgorythm;
+using GraphLibrary.Helpers;
 using GraphLibrary.Model;
 using System.Diagnostics;
 
@@ -12,7 +13,7 @@ namespace IHGEAlgorithm
             // Check for test mode
             if (args.Length > 0 && args[0] == "--test")
             {
-                var testRunner = new TestRunner(); // upewnij się, że masz klasę TestRunner
+                var testRunner = new TestRunnerV2(); // upewnij się, że masz klasę TestRunner
                 string testDirectory = args.Length > 1 ? args[1] : "testy";
                 testRunner.RunAllTests(testDirectory);
                 return;
@@ -67,15 +68,29 @@ namespace IHGEAlgorithm
                 }
 
                 // Create LIHGE solver
-                var solver = new MultiIHGESolver(g1, g2);
-
-                // Measure execution time
+                SearchResult result;
                 var stopwatch = Stopwatch.StartNew();
+                if (copies == 1)
+                {
+                    var solver = new SingleIHGESolver(g1, g2);
+                   
+                    // Measure execution time
 
-                // Find k copies of G1 in G2 with minimal extensions
-                var result = solver.FindKCopies(k: copies);
+                    // Find k copies of G1 in G2 with minimal extensions
+                    result = solver.FindSingleCopy();
+                    stopwatch.Stop();
+                }
+                else
+                {
+                    var solver = new MultiIHGESolver(g1, g2);
+                    // Measure execution time
 
-                stopwatch.Stop();
+                    // Find k copies of G1 in G2 with minimal extensions
+                    result = solver.FindKCopies(k: copies);
+                    stopwatch.Stop();
+                }
+
+
 
                 // QUIET MODE → only print COST and exit
                 if (quiet)
