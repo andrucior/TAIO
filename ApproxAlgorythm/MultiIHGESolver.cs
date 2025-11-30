@@ -11,7 +11,7 @@ public class MultiIHGESolver
     private int nextPlaceholderId;
     private int maxIterations = 500;
     private readonly Random rnd;
-    private double gamma = 0.1; // Kara za identyczne odwzorowania (nie może być za wysoka!)
+    private double gamma = 0.1;
 
     public MultiIHGESolver(Graph<int> g1, Graph<int> g2, int seed = 0)
     {
@@ -31,7 +31,7 @@ public class MultiIHGESolver
         var v1List = g1.Vertices.ToList();
         int n1 = v1List.Count;
 
-        // Kandydaci bazowi: wierzchołki G2 + placeholdery dla każdej warstwy
+
         var baseCandidates = new List<int>();
         baseCandidates.AddRange(g2.Vertices);
         for (int i = 0; i < n1 * k; i++)
@@ -40,7 +40,7 @@ public class MultiIHGESolver
         List<Dictionary<int, int>> bestPhis = new List<Dictionary<int, int>>();
         int bestCost = int.MaxValue;
 
-        int restarts = Math.Max(10, 8 + k * 1); // Więcej restartów
+        int restarts = Math.Max(10, 8 + k * 1);
         for (int run = 0; run < restarts; run++)
         {
             var phis = InitializePhis(k, v1List, baseCandidates);
@@ -56,7 +56,6 @@ public class MultiIHGESolver
 
                 var newPhis = new List<Dictionary<int, int>>();
 
-                // Aktualizuj każdą warstwę
                 for (int r = 0; r < k; r++)
                 {
                     var costMatrix = BuildCostMatrixForLayer(r, v1List, baseCandidates, phis, newPhis);
@@ -67,16 +66,13 @@ public class MultiIHGESolver
                     for (int i = 0; i < n1; i++)
                         newPhi[v1List[i]] = baseCandidates[assignment[i]];
 
-                    // KLUCZOWE: Wymuszenie różnorodności PRZED dodaniem do listy
                    if (k!=1) newPhi = EnforceDifference(newPhi, newPhis, v1List, baseCandidates);
 
                     newPhis.Add(newPhi);
                 }
 
-                // Lokalna poprawa dla wszystkich warstw jednocześnie
                 newPhis = LocalImproveAll(newPhis, v1List, baseCandidates);
 
-                // DODATKOWA WERYFIKACJA: jeśli nadal są identyczne, napraw to
                 if (k!=1) newPhis = EnsureAllDifferent(newPhis, v1List, baseCandidates);
 
                 if (!AllMappingsEqual(phis, newPhis))
@@ -92,13 +88,12 @@ public class MultiIHGESolver
                 phis = newPhis;
             }
 
-            // Scalanie placeholderów między warstwami
+
             phis = MergePlaceholders(phis);
 
-            // FINALNA WERYFIKACJA przed zapisaniem
             if (HasIdenticalLayers(phis) && (k != 1))
             {
-                continue; // Pomiń to rozwiązanie, spróbuj ponownie
+                continue;
             }
 
             int cost = ComputeGlobalCost(phis);
@@ -127,7 +122,6 @@ public class MultiIHGESolver
             Dictionary<int, int> phi = null;
             int attempts = 0;
 
-            // Próbuj znaleźć losowe przypisanie, które jest różne od poprzednich
             while (attempts < 100)
             {
                 var shuffled = candidates.OrderBy(x => rnd.Next()).ToList();
@@ -138,7 +132,6 @@ public class MultiIHGESolver
                     phi[v1List[i]] = shuffled[i];
                 }
 
-                // Sprawdź czy to przypisanie jest różne od wszystkich poprzednich
                 var currentSet = phi.Values.Where(v => g2.ContainsVertex(v)).ToHashSet();
                 bool isDifferent = true;
 
@@ -183,29 +176,25 @@ public class MultiIHGESolver
                 int c = candidates[j];
                 double w = 0;
 
-                // Koszt placeholdera
                 bool isPlaceholder = !g2.ContainsVertex(c);
                 if (isPlaceholder) w += 1.0;
 
-                // Koszt brakujących krawędzi
                 foreach (var t in v1List)
                 {
                     if (t == u) continue;
 
                     if (currentPhi.TryGetValue(t, out int c_t))
                     {
-                        // POPRAWKA: uwzględnij prawidłowy koszt krawędzi
                         if (g1.HasEdge(u, t))
                         {
                             if (!g2.HasEdge(c, c_t))
                             {
-                                // Znajdź oryginalną krawędź żeby sprawdzić czy jest skierowana
+
                                 var origEdge = g1.GetAllEdges().FirstOrDefault(e => e.From == u && e.To == t);
                                 if (origEdge != null)
                                 {
-                                    // KLUCZOWE: jeśli oba są placeholderami, nie licz podwójnie
                                     bool bothPlaceholders = isPlaceholder && !g2.ContainsVertex(c_t);
-                                    if (!bothPlaceholders || u < t) // Licz raz dla pary placeholderów
+                                    if (!bothPlaceholders || u < t) 
                                     {
                                         w += origEdge.IsDirected ? 1.0 : 2.0;
                                     }
@@ -231,10 +220,8 @@ public class MultiIHGESolver
                     }
                 }
 
-                // KLUCZOWA ZMIANA: Kara za używanie wierzchołków już wykorzystanych w POPRZEDNICH WARSTWACH
                 if (!isPlaceholder)
                 {
-                    // Sprawdź już utworzone warstwy w tym cyklu
                     foreach (var completedPhi in newPhis)
                     {
                         if (completedPhi.ContainsValue(c))
@@ -243,7 +230,6 @@ public class MultiIHGESolver
                         }
                     }
 
-                    // Sprawdź stare warstwy
                     for (int s = 0; s < layerIdx; s++)
                     {
                         if (oldPhis[s].TryGetValue(u, out int prev) && prev == c)
@@ -263,12 +249,10 @@ public class MultiIHGESolver
     private Dictionary<int, int> EnforceDifference(Dictionary<int, int> phi,
         List<Dictionary<int, int>> previousPhis, List<int> v1List, List<int> candidates)
     {
-        // Sprawdź, czy obecne phi jest identyczne z którąś z poprzednich warstw
         foreach (var prevPhi in previousPhis)
         {
             if (AreMappingsIdenticalInG2(phi, prevPhi))
             {
-                // Znajdź najtańszą zmianę
                 return FindCheapestDifference(phi, prevPhi, v1List, candidates);
             }
         }
@@ -277,11 +261,9 @@ public class MultiIHGESolver
 
     private bool AreMappingsIdenticalInG2(Dictionary<int, int> phi1, Dictionary<int, int> phi2)
     {
-        // Zbierz wszystkie wierzchołki z G2 (bez placeholderów)
         var set1 = phi1.Values.Where(v => g2.ContainsVertex(v)).ToHashSet();
         var set2 = phi2.Values.Where(v => g2.ContainsVertex(v)).ToHashSet();
 
-        // Kopie są identyczne jeśli używają tego samego zbioru wierzchołków
         return set1.SetEquals(set2);
     }
 
@@ -291,12 +273,10 @@ public class MultiIHGESolver
         var bestPhi = new Dictionary<int, int>(phi);
         int bestCost = int.MaxValue;
 
-        // Najpierw spróbuj zmienić tylko placeholdery
         foreach (var u in v1List)
         {
             int original = phi[u];
 
-            // Preferuj placeholdery dla różnicowania
             foreach (var c in candidates.Where(x => !g2.ContainsVertex(x)))
             {
                 if (c == original) continue;
@@ -317,7 +297,6 @@ public class MultiIHGESolver
             phi[u] = original;
         }
 
-        // Jeśli to nie wystarczy, zmień na inny wierzchołek z G2
         if (AreMappingsIdenticalInG2(bestPhi, conflictPhi))
         {
             var usedInConflict = conflictPhi.Values.Where(v => g2.ContainsVertex(v)).ToHashSet();
@@ -358,17 +337,15 @@ public class MultiIHGESolver
             if (g2.ContainsVertex(v))
             {
                 if (reverse.ContainsKey(v))
-                    cost += 1000000; // OGROMNA KARA aby wymusić różne obrazy
+                    cost += 1000000;
                 else
                     reverse[v] = u;
             }
         }
-        // koszt placeholderów
         foreach (var v in phi.Values)
             if (!g2.ContainsVertex(v))
                 cost++;
 
-        // koszt brakujących krawędzi — spójna obsługa kierunkowości:
         foreach (var edge in g1.GetAllEdges())
         {
             int u = phi[edge.From];
@@ -376,24 +353,20 @@ public class MultiIHGESolver
 
             if (edge.IsDirected)
             {
-                // wymóg jednego łuku u->v
                 if (!g2.HasEdge(u, v))
                     cost += 1;
             }
             else
             {
-                // g1 ma krawędź nie-skierowaną między From i To
                 if (g2.IsDirected)
                 {
-                    // target skierowany: wymagamy obu łuków u->v i v->u,
-                    // każdy brakujący łuk kosztuje 1
+
                     if (!g2.HasEdge(u, v)) cost += 1;
                     if (!g2.HasEdge(v, u)) cost += 1;
                 }
                 else
                 {
-                    // target nie-skierowany: wymagamy krawędzi (u,v) (jako para),
-                    // brak -> koszt 2
+
                     if (!g2.HasEdge(u, v) && !g2.HasEdge(v, u))
                         cost += 2;
                 }
@@ -412,7 +385,6 @@ public class MultiIHGESolver
         {
             var fixedPhi = phi;
 
-            // Sprawdź czy jest identyczne z którąś już dodaną
             foreach (var existing in result)
             {
                 if (AreMappingsIdenticalInG2(fixedPhi, existing))
@@ -601,8 +573,8 @@ public class MultiIHGESolver
     private int ComputeGlobalCost(List<Dictionary<int, int>> phis)
     {
         var addedVertices = new HashSet<int>();
-        var addedDirectedArcs = new HashSet<(int, int)>(); // u->v
-        var addedUndirectedEdges = new HashSet<(int, int)>(); // min,max for undirected
+        var addedDirectedArcs = new HashSet<(int, int)>(); 
+        var addedUndirectedEdges = new HashSet<(int, int)>();
 
         foreach (var phi in phis)
         {
@@ -624,13 +596,11 @@ public class MultiIHGESolver
                 {
                     if (g2.IsDirected)
                     {
-                        // wymagamy obu łuków
                         if (!g2.HasEdge(u, v)) addedDirectedArcs.Add((u, v));
                         if (!g2.HasEdge(v, u)) addedDirectedArcs.Add((v, u));
                     }
                     else
                     {
-                        // target nie-skierowany: traktuj (min,max) jako klucz
                         var key = u < v ? (u, v) : (v, u);
                         if (!g2.HasEdge(u, v) && !g2.HasEdge(v, u))
                             addedUndirectedEdges.Add(key);
@@ -640,9 +610,7 @@ public class MultiIHGESolver
         }
 
         int edgeCost = 0;
-        // każdy dodany łuk kosztuje 1
         edgeCost += addedDirectedArcs.Count * 1;
-        // każda dodana nie-skierowana krawędź kosztuje 2
         edgeCost += addedUndirectedEdges.Count * 2;
 
         return addedVertices.Count + edgeCost;
