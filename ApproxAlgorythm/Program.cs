@@ -13,7 +13,7 @@ namespace IHGEAlgorithm
             // Check for test mode
             if (args.Length > 0 && args[0] == "--test")
             {
-                var testRunner = new TestRunnerV2(); // upewnij się, że masz klasę TestRunner
+                var testRunner = new TestRunnerV2(); 
                 string testDirectory = args.Length > 1 ? args[1] : "testy";
                 testRunner.RunAllTests(testDirectory);
                 return;
@@ -73,33 +73,26 @@ namespace IHGEAlgorithm
                 if (copies == 1)
                 {
                     var solver = new SingleIHGESolver(g1, g2);
-                   
-                    // Measure execution time
 
-                    // Find k copies of G1 in G2 with minimal extensions
                     result = solver.FindSingleCopy();
                     stopwatch.Stop();
                 }
                 else
                 {
                     var solver = new MultiIHGESolver(g1, g2);
-                    // Measure execution time
 
-                    // Find k copies of G1 in G2 with minimal extensions
                     result = solver.FindKCopies(k: copies);
                     stopwatch.Stop();
                 }
 
 
-
-                // QUIET MODE → only print COST and exit
                 if (quiet)
                 {
                     Console.WriteLine($"COST={result.TotalCost}");
                     return;
                 }
 
-                // Normal verbose output
+
                 Console.WriteLine("=== Results for multiple copies ===");
                 Console.WriteLine($"Total cost of extension: {result.TotalCost}");
                 Console.WriteLine($"Added vertices: {result.AddedVertices}");

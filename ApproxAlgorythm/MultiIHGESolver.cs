@@ -645,7 +645,6 @@ public class MultiIHGESolver
                 {
                     if (!g2.HasEdge(u, v) && !g2.HasEdge(v, u))
                     {
-                        // dodaj jako nie-skierowana (typu Edge z IsDirected=false)
                         addedE.Add(new Edge<int>(u, v, 1.0, false));
                     }
                 }

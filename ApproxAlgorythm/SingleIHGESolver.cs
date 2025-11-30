@@ -26,7 +26,6 @@ public SingleIHGESolver(Graph<int> g1, Graph<int> g2)
         var v1List = g1.Vertices.ToList();
         int n1 = v1List.Count;
 
-        // Kandydaci = wierzchołki G2 + placeholdery
         var baseCandidates = new List<int>();
         baseCandidates.AddRange(g2.Vertices);
         for (int i = 0; i < n1; i++)
@@ -35,13 +34,11 @@ public SingleIHGESolver(Graph<int> g1, Graph<int> g2)
         Dictionary<int, int>? bestPhi = null;
         int bestCost = int.MaxValue;
 
-        int restarts = 15; // kilka restartów dla większych szans na globalne optimum
+        int restarts = 15; 
         for (int run = 0; run < restarts; run++)
         {
-            // losowy porządek kandydatów dla różnorodności startu
             var candidates = baseCandidates.OrderBy(x => rnd.Next()).ToList();
 
-            // inicjalne phi: przypisz do pierwszych n1 candidate (placeholdery lub losowe)
             var phi = new Dictionary<int, int>();
             for (int i = 0; i < n1; i++)
                 phi[v1List[i]] = candidates[i];
@@ -55,19 +52,16 @@ public SingleIHGESolver(Graph<int> g1, Graph<int> g2)
                 iter++;
                 changed = false;
 
-                // Budujemy macierz kosztów względem bieżącego φ (heurystyczne oszacowanie)
                 var costMatrix = BuildCostMatrix(v1List, candidates, phi);
 
                 // Hungarian
                 var hungarian = new HungarianAlgorithm(costMatrix);
                 var assignment = hungarian.Solve();
 
-                // Tworzymy nowe przypisanie
                 var newPhi = new Dictionary<int, int>();
                 for (int i = 0; i < n1; i++)
                     newPhi[v1List[i]] = candidates[assignment[i]];
 
-                // Lokalna poprawa (mierzy RZECZYWISTY koszt)
                 newPhi = LocalImprove(newPhi, v1List, candidates);
 
                 if (!MappingsEqual(phi, newPhi))
@@ -85,7 +79,6 @@ public SingleIHGESolver(Graph<int> g1, Graph<int> g2)
             }
 
             if (changed == true) stableiterations++; else stableiterations = 0;
-            // szybkie wyjście jeżeli osiągnięto 0 koszt (najlepsze możliwe)
             if (bestCost == 0) break;
         }
 
@@ -93,7 +86,6 @@ public SingleIHGESolver(Graph<int> g1, Graph<int> g2)
         return new SearchResult(new List<Mapping> { mapping }, mapping.Cost);
     }
 
-    // --- BuildCostMatrix: heurystyczne oszacowanie (możesz używać swojej poprzedniej wersji) ---
     private double[,] BuildCostMatrix(List<int> v1List, List<int> candidates, Dictionary<int, int> phi)
     {
         int n1 = v1List.Count;
@@ -110,10 +102,7 @@ public SingleIHGESolver(Graph<int> g1, Graph<int> g2)
                 double w = 0;
 
                 bool isPlaceholder = !g2.ContainsVertex(c);
-                if (isPlaceholder) w += 1.0; // koszt nowego wierzchołka
-
-                // Heurystyka: jeśli phi(t) istnieje, sprawdź czy wymagane krawędzie istnieją.
-                // Dla nieskierowanego wcześniej był problem z double counting; tu pracujemy na skierowanych.
+                if (isPlaceholder) w += 1.0; 
                 foreach (var t in v1List)
                 {
                     if (t == u) continue;
@@ -125,7 +114,6 @@ public SingleIHGESolver(Graph<int> g1, Graph<int> g2)
                     }
                     else
                     {
-                        // pesymistyczna estymata
                         if (g1.HasEdge(u, t)) w += 1.0;
                         if (g1.HasEdge(t, u)) w += 1.0;
                     }
@@ -138,7 +126,6 @@ public SingleIHGESolver(Graph<int> g1, Graph<int> g2)
         return cost;
     }
 
-    // --- ComputeTrueCost: dokładne policzenie kosztu dla danego phi ---
     private int ComputeTrueCost(Dictionary<int, int> phi)
     {
         int cost = 0;
@@ -159,7 +146,6 @@ public SingleIHGESolver(Graph<int> g1, Graph<int> g2)
         return cost;
     }
 
-    // --- LocalImprove: single reassign to unused candidates + pairwise swaps ---
     private Dictionary<int, int> LocalImprove(Dictionary<int, int> phi, List<int> v1List, List<int> candidates)
     {
         var currentPhi = new Dictionary<int, int>(phi);
@@ -173,7 +159,6 @@ public SingleIHGESolver(Graph<int> g1, Graph<int> g2)
             var used = new HashSet<int>(currentPhi.Values);
             var unused = candidates.Where(c => !used.Contains(c)).ToList();
 
-            // Try single reassignments (move one u to an unused candidate)
             foreach (var u in v1List)
             {
                 int old = currentPhi[u];
@@ -186,21 +171,19 @@ public SingleIHGESolver(Graph<int> g1, Graph<int> g2)
                     {
                         bestCost = c;
                         improved = true;
-                        // update sets and break to restart search
                         used.Remove(old); used.Add(cand);
                         unused = candidates.Where(x => !used.Contains(x)).ToList();
                         break;
                     }
                     else
                     {
-                        currentPhi[u] = old; // revert
+                        currentPhi[u] = old; 
                     }
                 }
                 if (improved) break;
             }
             if (improved) continue;
 
-            // Try pairwise swaps
             for (int i = 0; i < v1List.Count && !improved; i++)
             {
                 for (int j = i + 1; j < v1List.Count && !improved; j++)
