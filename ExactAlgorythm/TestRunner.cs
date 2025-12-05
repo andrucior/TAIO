@@ -48,9 +48,9 @@ namespace ExactAlgorythm
                 return;
             }
 
-            Console.WriteLine("╔═══════════════════════════════════════════════════════════════╗");
-            Console.WriteLine("║           AUTOMATED TEST SUITE - VF2 ALGORITHM                ║");
-            Console.WriteLine("╚═══════════════════════════════════════════════════════════════╝");
+            Console.WriteLine("===============================================================");
+            Console.WriteLine("          AUTOMATED TEST SUITE - VF2 ALGORITHM                 ");
+            Console.WriteLine("===============================================================");
             Console.WriteLine();
 
             int totalTests = 0;
@@ -84,14 +84,14 @@ namespace ExactAlgorythm
 
             // Print summary
             Console.WriteLine();
-            Console.WriteLine("╔═══════════════════════════════════════════════════════════════╗");
-            Console.WriteLine("║                        TEST SUMMARY                           ║");
-            Console.WriteLine("╚═══════════════════════════════════════════════════════════════╝");
+            Console.WriteLine("===============================================================");
+            Console.WriteLine("                       TEST SUMMARY                            ");
+            Console.WriteLine("===============================================================");
             Console.WriteLine();
             Console.WriteLine($"Total tests:   {totalTests}");
-            Console.WriteLine($"✓ Passed:      {passedTests} ({(totalTests > 0 ? passedTests * 100.0 / totalTests : 0):F1}%)");
-            Console.WriteLine($"✗ Failed:      {failedTests} ({(totalTests > 0 ? failedTests * 100.0 / totalTests : 0):F1}%)");
-            Console.WriteLine($"? Unknown:     {unknownTests}");
+            Console.WriteLine($"[+] Passed:    {passedTests} ({(totalTests > 0 ? passedTests * 100.0 / totalTests : 0):F1}%)");
+            Console.WriteLine($"[-] Failed:    {failedTests} ({(totalTests > 0 ? failedTests * 100.0 / totalTests : 0):F1}%)");
+            Console.WriteLine($"[?] Unknown:   {unknownTests}");
             Console.WriteLine();
 
             if (failedTests > 0)
@@ -117,15 +117,15 @@ namespace ExactAlgorythm
             // Overall result
             if (failedTests == 0 && unknownTests == 0)
             {
-                Console.WriteLine("🎉 ALL TESTS PASSED! 🎉");
+                Console.WriteLine("*** ALL TESTS PASSED! ***");
             }
             else if (failedTests == 0)
             {
-                Console.WriteLine("✓ All known tests passed (some tests have no expected cost)");
+                Console.WriteLine("[+] All known tests passed (some tests have no expected cost)");
             }
             else
             {
-                Console.WriteLine($"⚠ {failedTests} test(s) failed!");
+                Console.WriteLine($"[!] {failedTests} test(s) failed!");
             }
         }
 
@@ -133,7 +133,7 @@ namespace ExactAlgorythm
         {
             var result = new TestResult { TestName = testName };
 
-            Console.WriteLine($"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine($"---------------------------------------------------------------");
             Console.Write($"Running: {testName,-30} ");
 
             try
@@ -162,7 +162,7 @@ namespace ExactAlgorythm
                     {
                         result.Status = TestStatus.Passed;
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"✓ PASS");
+                        Console.WriteLine($"[PASS]");
                         Console.ResetColor();
                         Console.WriteLine($"  Cost: {result.ActualCost}, Time: {result.ExecutionTime}ms");
                     }
@@ -170,7 +170,7 @@ namespace ExactAlgorythm
                     {
                         result.Status = TestStatus.Failed;
                         Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine($"✗ FAIL");
+                        Console.WriteLine($"[FAIL]");
                         Console.ResetColor();
                         Console.WriteLine($"  Expected: {expectedCost}, Got: {result.ActualCost}, Time: {result.ExecutionTime}ms");
                     }
@@ -179,7 +179,7 @@ namespace ExactAlgorythm
                 {
                     result.Status = TestStatus.Unknown;
                     Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine($"? UNKNOWN");
+                    Console.WriteLine($"[UNKNOWN]");
                     Console.ResetColor();
                     Console.WriteLine($"  Cost: {result.ActualCost}, Time: {result.ExecutionTime}ms (no expected cost defined)");
                 }
@@ -191,7 +191,7 @@ namespace ExactAlgorythm
                 result.ErrorMessage = ex.Message;
                 
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"✗ ERROR");
+                Console.WriteLine($"[ERROR]");
                 Console.ResetColor();
                 Console.WriteLine($"  {ex.Message}");
             }
